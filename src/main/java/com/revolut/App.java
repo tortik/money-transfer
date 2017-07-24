@@ -1,0 +1,76 @@
+package com.revolut;
+
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.revolut.modules.AppModule;
+import com.revolut.modules.JettyModule;
+import com.revolut.modules.ResourceModule;
+import com.revolut.modules.RestEasyModule;
+import com.revolut.modules.SwaggerModule;
+import com.revolut.servlet.swagger.SwaggerServletContextListener;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.servlet.DefaultServlet;
+import org.eclipse.jetty.servlet.FilterHolder;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+
+import com.google.inject.servlet.GuiceFilter;
+import org.eclipse.jetty.util.log.Log;
+import org.eclipse.jetty.util.log.Slf4jLog;
+import org.jboss.resteasy.plugins.guice.GuiceResteasyBootstrapServletContextListener;
+
+import javax.inject.Inject;
+
+public class App {
+    public static final String APPLICATION_PATH = "/api";
+    public static final String CONTEXT_ROOT = "/";
+
+    private final GuiceFilter filter;
+
+    @Inject
+    public App(GuiceFilter filter) {
+        this.filter = filter;
+    }
+
+
+    public static void main(String[] args) throws Exception {
+        try {
+            Log.setLog(new Slf4jLog());
+
+            final Injector injector = Guice.createInjector(new JettyModule(),
+                    new RestEasyModule(APPLICATION_PATH),
+                    new ResourceModule(),
+                    new SwaggerModule(APPLICATION_PATH),
+                    new AppModule());
+
+            injector.getInstance(App.class).startServer(injector);
+
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+    }
+
+    public void startServer(Injector injector) throws Exception {
+        // Create the server
+        Server server = new Server(8080);
+
+        // Create a servlet context and add the jersey servlet
+        final ServletContextHandler context = new ServletContextHandler(server, CONTEXT_ROOT);
+
+        FilterHolder filterHolder = new FilterHolder(filter);
+        context.addFilter(filterHolder, APPLICATION_PATH + "/*", null);
+        context.addFilter(GuiceFilter.class, "/*", null);
+        context.addServlet(DefaultServlet.class, CONTEXT_ROOT);
+
+        String resourceBasePath = App.class.getResource("/swagger-ui").toExternalForm();
+        context.setResourceBase(resourceBasePath);
+        context.setWelcomeFiles(new String[]{"index.html"});
+
+        context.addEventListener(injector.getInstance(SwaggerServletContextListener.class));
+        context.addEventListener(injector.getInstance(GuiceResteasyBootstrapServletContextListener.class));
+
+        server.start();
+
+        server.join();
+    }
+
+}
