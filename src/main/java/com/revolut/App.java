@@ -2,11 +2,7 @@ package com.revolut;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.revolut.modules.AppModule;
-import com.revolut.modules.JettyModule;
-import com.revolut.modules.ResourceModule;
-import com.revolut.modules.RestEasyModule;
-import com.revolut.modules.SwaggerModule;
+import com.revolut.modules.*;
 import com.revolut.servlet.swagger.SwaggerServletContextListener;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.DefaultServlet;
@@ -17,18 +13,24 @@ import com.google.inject.servlet.GuiceFilter;
 import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.log.Slf4jLog;
 import org.jboss.resteasy.plugins.guice.GuiceResteasyBootstrapServletContextListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 
 public class App {
+    private static final Logger LOG = LoggerFactory.getLogger(App.class);
     public static final String APPLICATION_PATH = "/api";
     public static final String CONTEXT_ROOT = "/";
 
     private final GuiceFilter filter;
+    private final int port;
 
     @Inject
-    public App(GuiceFilter filter) {
+    public App(GuiceFilter filter, @Named("application.port") String port) {
         this.filter = filter;
+        this.port = Integer.valueOf(port);
     }
 
 
@@ -40,6 +42,7 @@ public class App {
                     new RestEasyModule(APPLICATION_PATH),
                     new ResourceModule(),
                     new SwaggerModule(APPLICATION_PATH),
+                    new PropertiesModule(),
                     new AppModule());
 
             injector.getInstance(App.class).startServer(injector);
@@ -51,7 +54,7 @@ public class App {
 
     public void startServer(Injector injector) throws Exception {
         // Create the server
-        Server server = new Server(8080);
+        Server server = new Server(port);
 
         // Create a servlet context and add the jersey servlet
         final ServletContextHandler context = new ServletContextHandler(server, CONTEXT_ROOT);
@@ -69,7 +72,7 @@ public class App {
         context.addEventListener(injector.getInstance(GuiceResteasyBootstrapServletContextListener.class));
 
         server.start();
-
+        LOG.info("Successfully start server on port - {}", port);
         server.join();
     }
 
