@@ -47,12 +47,27 @@ public class MoneyTransferLockService implements MoneyTransfer {
             repository.setBalance(newSenderBalance);
             repository.setBalance(newReceiverBalance);
         } finally {
-            firstLock.unlockWrite(firstLockTS);
-            lockHolder.removeMonitor(metaData);
             secondLock.unlockWrite(secondLockTS);
             lockHolder.removeMonitor(secondMetaData);
+            firstLock.unlockWrite(firstLockTS);
+            lockHolder.removeMonitor(metaData);
         }
 
+    }
+
+    @Override
+    public AccountBalance getBalance(long accountId) {
+        LockHolder.LockMetaData metaData = lockHolder.getMonitor(accountId);
+        StampedLock stampedLock = metaData.getLockWrapper().getStampedLock();
+        long readLockTS = stampedLock.readLock();
+        AccountBalance balance;
+        try {
+            balance = repository.getBalance(accountId);
+        } finally {
+            stampedLock.unlockRead(readLockTS);
+            lockHolder.removeMonitor(metaData);
+        }
+        return balance;
     }
 
 

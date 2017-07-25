@@ -24,6 +24,11 @@ public class LockHolder {
         return new LockMetaData(lockWrapper, acc);
     }
 
+    public LockMetaData getMonitor(Long acc) {
+        LockWrapper lockWrapper = locks.putIfAbsent(acc, new LockWrapper(new StampedLock(), new AtomicInteger(0)));
+        return new LockMetaData(lockWrapper, acc);
+    }
+
     public void removeMonitor(LockMetaData metaData) {
         StampedLock lock = metaData.getLockWrapper().getStampedLock();
         locks.remove(metaData.getAccountNumber(), new LockWrapper(lock, new AtomicInteger(metaData.getRefCount())));

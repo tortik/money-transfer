@@ -46,6 +46,11 @@ public class MoneyTransferCASService implements MoneyTransfer {
 
     }
 
+    @Override
+    public AccountBalance getBalance(long accountId) {
+        return repository.getBalance(accountId).get();
+    }
+
     private boolean blockAmount(Long senderAcc, BigDecimal amount) {
         AtomicReference<AccountBalance> balanceRef = repository.getBalance(senderAcc);
         for (int i = 0; i < maxRetries; i++) {

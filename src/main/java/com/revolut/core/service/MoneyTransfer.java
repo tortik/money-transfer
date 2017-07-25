@@ -9,6 +9,8 @@ public interface MoneyTransfer {
 
     void transfer(TransferRequest request);
 
+    AccountBalance getBalance(long accountId);
+
     default void validateBalance(AccountBalance balance, BigDecimal sendAmount) {
         BigDecimal remainAmount;
         if ((remainAmount = balance.getMoneyAmount().subtract(sendAmount)).compareTo(BigDecimal.ZERO) > 0) {

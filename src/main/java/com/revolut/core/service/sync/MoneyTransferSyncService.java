@@ -42,6 +42,17 @@ public class MoneyTransferSyncService implements MoneyTransfer {
         monitorHolder.removeMonitor(firstMetaData);
     }
 
+    @Override
+    public AccountBalance getBalance(long accountId) {
+        SyncMonitorHolder.MonitorMetaData metaData = monitorHolder.getMonitor(accountId);
+        AccountBalance balance;
+        synchronized (metaData.getMonitor()) {
+            balance = repository.getBalance(accountId);
+        }
+        monitorHolder.removeMonitor(metaData);
+        return balance;
+    }
+
     private AccountBalance getNewRecipientAccountBalance(TransferRequest request, Long toAcc) {
         AccountBalance recipientBalance = repository.getBalance(toAcc);
         BigDecimal increasedAmount = recipientBalance.getMoneyAmount().add(request.getAmount());

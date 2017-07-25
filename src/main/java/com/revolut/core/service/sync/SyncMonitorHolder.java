@@ -23,6 +23,12 @@ public class SyncMonitorHolder {
         return new MonitorMetaData(monitor, acc);
     }
 
+
+    public MonitorMetaData getMonitor(Long acc) {
+        Monitor monitor = locks.putIfAbsent(acc, new Monitor(new AtomicInteger(0)));
+        return new MonitorMetaData(monitor, acc);
+    }
+
     public void removeMonitor(MonitorMetaData metaData) {
         locks.remove(metaData.getAccountNumber(), new Monitor(new AtomicInteger(metaData.getRefCount())));
     }
