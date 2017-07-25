@@ -1,6 +1,6 @@
 package com.revolut.servlet.swagger;
 
-import com.revolut.resources.FooResource;
+import com.revolut.resources.MoneyTransferResource;
 import io.swagger.config.ScannerFactory;
 import io.swagger.jaxrs.config.BeanConfig;
 
@@ -30,7 +30,7 @@ import javax.servlet.ServletContextListener;
         beanConfig.setDescription("Money transfer application.");
 
 
-        beanConfig.setResourcePackage(FooResource.class.getPackage().getName());
+        beanConfig.setResourcePackage(MoneyTransferResource.class.getPackage().getName());
         beanConfig.setScan(true);
 
         return beanConfig;

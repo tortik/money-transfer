@@ -1,21 +1,17 @@
 package com.revolut.resources;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 
-import com.revolut.core.FooManager;
+import com.revolut.core.service.MoneyTransfer;
 
 import com.google.inject.Inject;
 
-@Path("/foo")
-public class FooResource {
-	private final FooManager manager;
+@Path("/transfers")
+public class MoneyTransferResource {
+	private final MoneyTransfer manager;
 
 	@Inject
-	public FooResource(FooManager manager) {
+	public MoneyTransferResource(MoneyTransfer manager) {
 		this.manager = manager;
 	}
 
@@ -25,7 +21,7 @@ public class FooResource {
 		return manager.getFoo();
 	}
 
-	@PUT
+	@POST
 	@Consumes("application/json")
 	public void update(String foo) {
 		manager.setFoo(foo);
