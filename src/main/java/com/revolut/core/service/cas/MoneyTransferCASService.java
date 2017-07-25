@@ -31,7 +31,7 @@ public class MoneyTransferCASService implements MoneyTransfer {
 
     @Inject
     public MoneyTransferCASService(@Named("application.port") String maxRetries,
-                                   AccountBalanceRepository<AtomicReference<AccountBalance>> repository) {
+                                   AccountBalanceRepository repository) {
         this.maxRetries = Integer.valueOf(maxRetries);
         this.repository = repository;
     }
@@ -90,7 +90,7 @@ public class MoneyTransferCASService implements MoneyTransfer {
                     map(it -> increaseAmount(it, amount)).
                     orElseThrow(() -> new RuntimeException(format("Can't put money amount %s to account balance %s", amount, balanceRef.get())));
             if (balanceRef.compareAndSet(balanceRef.get(), increasedBalance)) {
-                LOG.info("Successfully subtract amount {} for account {}", amount, receiverAcc);
+                LOG.info("Successfully add amount {} for account {}", amount, receiverAcc);
                 return true;
             }
         }
@@ -105,7 +105,8 @@ public class MoneyTransferCASService implements MoneyTransfer {
             decreasedBalance = Optional.ofNullable(balanceRef).map(AtomicReference::get).
                     map(it -> decreaseBlockedAccountBalance(it, amount)).
                     orElseThrow(() -> new RuntimeException(format("Can't put money amount %s to account balance %s", amount, balanceRef.get())));
-        } while (balanceRef.compareAndSet(balanceRef.get(), decreasedBalance));
+        } while (!balanceRef.compareAndSet(balanceRef.get(), decreasedBalance));
+        LOG.info("Successfully remove blocked amount {} from account {}", amount, senderAcc);
     }
 
     private boolean unblockSenderAmount(Long senderAcc, BigDecimal amount) {

@@ -19,7 +19,7 @@ public class MoneyTransferLockService implements MoneyTransfer {
     private LockHolder lockHolder;
 
     @Inject
-    public MoneyTransferLockService(LockHolder lockHolder, AccountBalanceRepository<AccountBalance> repository) {
+    public MoneyTransferLockService(LockHolder lockHolder, AccountBalanceRepository repository) {
         this.lockHolder = lockHolder;
         this.repository = repository;
     }
@@ -33,7 +33,7 @@ public class MoneyTransferLockService implements MoneyTransfer {
         StampedLock firstLock = metaData.getLockWrapper().getStampedLock();
         long firstLockTS = firstLock.writeLock();
 
-        LockHolder.LockMetaData secondMetaData = lockHolder.getMonitor(fromAcc, toAcc, Math::min);
+        LockHolder.LockMetaData secondMetaData = lockHolder.getMonitor(fromAcc, toAcc, Math::max);
         StampedLock secondLock = secondMetaData.getLockWrapper().getStampedLock();
         long secondLockTS = secondLock.writeLock();
 
@@ -44,8 +44,9 @@ public class MoneyTransferLockService implements MoneyTransfer {
             AccountBalance newSenderBalance = new AccountBalance(senderBalance.getAccNumber(), remainingSum,
                     senderBalance.getBlockedAmount());
 
-            AccountBalance receiverBalance = repository.getBalance(fromAcc);
-            AccountBalance newReceiverBalance = new AccountBalance(receiverBalance.getAccNumber(), remainingSum,
+            AccountBalance receiverBalance = repository.getBalance(toAcc);
+            BigDecimal newReceiverSum = receiverBalance.getMoneyAmount().add(request.getAmount());
+            AccountBalance newReceiverBalance = new AccountBalance(receiverBalance.getAccNumber(), newReceiverSum,
                     receiverBalance.getBlockedAmount());
 
             repository.setBalance(newSenderBalance);
