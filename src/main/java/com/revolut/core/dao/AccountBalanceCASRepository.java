@@ -1,4 +1,4 @@
-package com.revolut.core.service.cas;
+package com.revolut.core.dao;
 
 import com.revolut.core.dao.AccountBalanceRepository;
 import com.revolut.core.model.AccountBalance;
@@ -12,6 +12,11 @@ public class AccountBalanceCASRepository implements AccountBalanceRepository<Ato
 
     public AtomicReference<AccountBalance> getBalance(long accNumber) {
         return storage.get(accNumber);
+    }
+
+    @Override
+    public void addNewBalance(AtomicReference<AccountBalance> accountBalance) {
+        storage.putIfAbsent(accountBalance.get().getAccNumber(), accountBalance);
     }
 
     @Override

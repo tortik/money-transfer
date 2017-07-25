@@ -7,6 +7,7 @@ import com.revolut.core.model.TransferRequest;
 import com.revolut.core.service.MoneyTransfer;
 
 import com.google.inject.Inject;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import java.math.BigDecimal;
 
 
+@Api
 @Path("/transfers")
 public class MoneyTransferResource {
     private static final Logger LOG = LoggerFactory.getLogger(MoneyTransferResource.class);

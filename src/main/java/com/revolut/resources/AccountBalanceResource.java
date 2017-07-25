@@ -3,13 +3,14 @@ package com.revolut.resources;
 import com.google.inject.Inject;
 import com.revolut.core.model.AccountBalance;
 import com.revolut.core.service.MoneyTransfer;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiParam;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
+@Api
 @Path("accounts")
 public class AccountBalanceResource {
 
@@ -22,9 +23,17 @@ public class AccountBalanceResource {
 
 
     @GET
-    @Produces("application/json")
+    @Produces(MediaType.APPLICATION_JSON)
     @Path("{acccountId}/balance")
     public AccountBalance retrieve(@ApiParam @PathParam("acccountId") Long accountId) {
         return service.getBalance(accountId);
+    }
+
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response addAccount(AccountBalance balance) {
+         service.addBalance(balance);
+        return Response.status(204).build();
     }
 }

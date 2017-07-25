@@ -20,8 +20,10 @@ public class LockHolder {
      */
     public LockMetaData getMonitor(Long fromAcc, Long toAcc, BiFunction<Long, Long, Long> compareFunc) {
         Long acc = compareFunc.apply(fromAcc, toAcc);
-        LockWrapper lockWrapper = locks.putIfAbsent(acc, new LockWrapper(new StampedLock(), new AtomicInteger(0)));
-        return new LockMetaData(lockWrapper, acc);
+        LockWrapper lock = new LockWrapper(new StampedLock(), new AtomicInteger(0));
+        LockWrapper existLockWrapper = locks.putIfAbsent(acc, lock);
+        lock = existLockWrapper == null ? lock : existLockWrapper;
+        return new LockMetaData(lock, acc);
     }
 
     public LockMetaData getMonitor(Long acc) {

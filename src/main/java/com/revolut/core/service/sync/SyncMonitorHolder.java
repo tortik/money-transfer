@@ -19,7 +19,9 @@ public class SyncMonitorHolder {
      */
     public MonitorMetaData getMonitor(Long fromAcc, Long toAcc, BiFunction<Long, Long, Long> compareFunc) {
         Long acc = compareFunc.apply(fromAcc, toAcc);
-        Monitor monitor = locks.putIfAbsent(acc, new Monitor(new AtomicInteger(0)));
+        Monitor monitor = new Monitor(new AtomicInteger(0));
+        Monitor existMonitor = locks.putIfAbsent(acc, monitor);
+        monitor = existMonitor == null ? monitor : existMonitor;
         return new MonitorMetaData(monitor, acc);
     }
 

@@ -15,10 +15,14 @@ import java.util.concurrent.locks.StampedLock;
 public class MoneyTransferLockService implements MoneyTransfer {
     private static final Logger LOG = LoggerFactory.getLogger(MoneyTransferLockService.class);
 
-    @Inject
     private AccountBalanceRepository<AccountBalance> repository;
-    @Inject
     private LockHolder lockHolder;
+
+    @Inject
+    public MoneyTransferLockService(LockHolder lockHolder, AccountBalanceRepository<AccountBalance> repository) {
+        this.lockHolder = lockHolder;
+        this.repository = repository;
+    }
 
     @Override
     public void transfer(TransferRequest request) {
@@ -52,23 +56,15 @@ public class MoneyTransferLockService implements MoneyTransfer {
             firstLock.unlockWrite(firstLockTS);
             lockHolder.removeMonitor(metaData);
         }
-
     }
 
     @Override
     public AccountBalance getBalance(long accountId) {
-        LockHolder.LockMetaData metaData = lockHolder.getMonitor(accountId);
-        StampedLock stampedLock = metaData.getLockWrapper().getStampedLock();
-        long readLockTS = stampedLock.readLock();
-        AccountBalance balance;
-        try {
-            balance = repository.getBalance(accountId);
-        } finally {
-            stampedLock.unlockRead(readLockTS);
-            lockHolder.removeMonitor(metaData);
-        }
-        return balance;
+        return repository.getBalance(accountId);
     }
 
-
+    @Override
+    public void addBalance(AccountBalance accountBalance) {
+        repository.addNewBalance(accountBalance);
+    }
 }

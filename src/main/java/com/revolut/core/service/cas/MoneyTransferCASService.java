@@ -2,12 +2,15 @@ package com.revolut.core.service.cas;
 
 
 import com.google.inject.Inject;
+import com.revolut.core.dao.AccountBalanceCASRepository;
+import com.revolut.core.dao.AccountBalanceRepository;
 import com.revolut.core.model.AccountBalance;
 import com.revolut.core.model.TransferRequest;
 import com.revolut.core.service.MoneyTransfer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Named;
 import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -22,10 +25,16 @@ import static java.lang.String.format;
  */
 public class MoneyTransferCASService implements MoneyTransfer {
     private static final Logger LOG = LoggerFactory.getLogger(MoneyTransferCASService.class);
-    @Inject
-    private AccountBalanceCASRepository repository;
+
+    private AccountBalanceRepository<AtomicReference<AccountBalance>> repository;
     private int maxRetries;
 
+    @Inject
+    public MoneyTransferCASService(@Named("application.port") String maxRetries,
+                                   AccountBalanceRepository<AtomicReference<AccountBalance>> repository) {
+        this.maxRetries = Integer.valueOf(maxRetries);
+        this.repository = repository;
+    }
 
     @Override
     public void transfer(TransferRequest request) {
@@ -43,12 +52,16 @@ public class MoneyTransferCASService implements MoneyTransfer {
                 unblockSenderAmount(senderAcc, amount);
             }
         }
-
     }
 
     @Override
     public AccountBalance getBalance(long accountId) {
         return repository.getBalance(accountId).get();
+    }
+
+    @Override
+    public void addBalance(AccountBalance accountBalance) {
+        repository.addNewBalance(new AtomicReference<>(accountBalance));
     }
 
     private boolean blockAmount(Long senderAcc, BigDecimal amount) {
@@ -105,7 +118,7 @@ public class MoneyTransferCASService implements MoneyTransfer {
                     orElseThrow(() -> new RuntimeException(format("Can't unblock amount %s for account balance %s", amount, balanceRef.get())));
 
             if (balanceRef.compareAndSet(balanceRef.get(), blockedBalance)) {
-                LOG.info(format("Successfully unblock amount %s for account %d", amount, blockedBalance));
+                LOG.info("Successfully unblock amount {} for account {}", amount, blockedBalance);
                 return true;
             }
         }
@@ -116,21 +129,21 @@ public class MoneyTransferCASService implements MoneyTransfer {
     private AccountBalance getBlockedAccountBalance(AccountBalance oldBalance, BigDecimal amount) {
         AccountBalance newBalance = new AccountBalance(oldBalance.getAccNumber(),
                 oldBalance.getMoneyAmount().subtract(amount), oldBalance.getBlockedAmount().add(amount));
-        LOG.debug(format("Map balance %s to new balance %d for amount %s", oldBalance, newBalance, amount));
+        LOG.debug("Map balance {} to new balance {} for amount {}", oldBalance, newBalance, amount);
         return newBalance;
     }
 
     private AccountBalance increaseAmount(AccountBalance oldBalance, BigDecimal amount) {
         AccountBalance newBalance = new AccountBalance(oldBalance.getAccNumber(), oldBalance.getMoneyAmount().add(amount),
                 oldBalance.getBlockedAmount());
-        LOG.debug(format("Map balance %s to new balance %d for amount %s", oldBalance, newBalance, amount));
+        LOG.debug("Map balance {} to new balance {} for amount {}", oldBalance, newBalance, amount);
         return newBalance;
     }
 
     private AccountBalance decreaseBlockedAccountBalance(AccountBalance oldBalance, BigDecimal amount) {
         AccountBalance newBalance = new AccountBalance(oldBalance.getAccNumber(), oldBalance.getMoneyAmount(),
                 oldBalance.getBlockedAmount().subtract(amount));
-        LOG.debug(format("Map balance %s to new balance %d for amount %s", oldBalance, newBalance, amount));
+        LOG.debug("Map balance {} to new balance {} for amount {}", oldBalance, newBalance, amount);
         return newBalance;
     }
 
@@ -138,7 +151,7 @@ public class MoneyTransferCASService implements MoneyTransfer {
         AccountBalance newBalance = new AccountBalance(oldBalance.getAccNumber(),
                 oldBalance.getMoneyAmount().add(amount), oldBalance.getBlockedAmount().subtract(amount));
 
-        LOG.debug(format("Map balance %s to new balance %d for amount %s", oldBalance, newBalance, amount));
+        LOG.debug("Map balance {} to new balance {} for amount {}", oldBalance, newBalance, amount);
         return newBalance;
     }
 }

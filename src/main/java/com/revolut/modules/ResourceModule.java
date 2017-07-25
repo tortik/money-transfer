@@ -1,6 +1,7 @@
 package com.revolut.modules;
 
 import com.google.inject.AbstractModule;
+import com.revolut.resources.AccountBalanceResource;
 import com.revolut.resources.MoneyTransferResource;
 
 public class ResourceModule extends AbstractModule {
@@ -9,5 +10,6 @@ public class ResourceModule extends AbstractModule {
     protected void configure() {
 
         bind(MoneyTransferResource.class);
+        bind(AccountBalanceResource.class);
     }
 }

@@ -16,11 +16,15 @@ import java.math.BigDecimal;
 public class MoneyTransferSyncService implements MoneyTransfer {
     private static final Logger LOG = LoggerFactory.getLogger(MoneyTransferSyncService.class);
 
-    @Inject
     private AccountBalanceRepository<AccountBalance> repository;
-    @Inject
     private SyncMonitorHolder monitorHolder;
 
+    @Inject
+    public MoneyTransferSyncService(SyncMonitorHolder monitorHolder,
+                                    AccountBalanceRepository repository) {
+        this.monitorHolder = monitorHolder;
+        this.repository = repository;
+    }
 
     @Override
     public void transfer(TransferRequest request) {
@@ -44,13 +48,12 @@ public class MoneyTransferSyncService implements MoneyTransfer {
 
     @Override
     public AccountBalance getBalance(long accountId) {
-        SyncMonitorHolder.MonitorMetaData metaData = monitorHolder.getMonitor(accountId);
-        AccountBalance balance;
-        synchronized (metaData.getMonitor()) {
-            balance = repository.getBalance(accountId);
-        }
-        monitorHolder.removeMonitor(metaData);
-        return balance;
+        return repository.getBalance(accountId);
+    }
+
+    @Override
+    public void addBalance(AccountBalance accountBalance) {
+        repository.addNewBalance(accountBalance);
     }
 
     private AccountBalance getNewRecipientAccountBalance(TransferRequest request, Long toAcc) {
@@ -69,6 +72,4 @@ public class MoneyTransferSyncService implements MoneyTransfer {
     private AccountBalance getNewBalance(AccountBalance oldBalance, BigDecimal newAmount) {
         return new AccountBalance(oldBalance.getAccNumber(), newAmount, oldBalance.getBlockedAmount());
     }
-
-
 }

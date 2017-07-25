@@ -5,9 +5,6 @@ import com.revolut.core.model.AccountBalance;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Created by user on 7/24/17.
- */
 public class AccBalanceMapRepository implements AccountBalanceRepository<AccountBalance> {
     private Map<Long, AccountBalance> balances = new ConcurrentHashMap<>();
 
@@ -15,6 +12,11 @@ public class AccBalanceMapRepository implements AccountBalanceRepository<Account
     @Override
     public AccountBalance getBalance(long account) {
         return balances.get(account);
+    }
+
+    @Override
+    public void addNewBalance(AccountBalance accountBalance) {
+        balances.putIfAbsent(accountBalance.getAccNumber(), accountBalance);
     }
 
     @Override

@@ -1,5 +1,10 @@
 package com.revolut.core.model;
 
+
+
+import org.codehaus.jackson.annotate.JsonCreator;
+import org.codehaus.jackson.annotate.JsonProperty;
+
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
@@ -11,7 +16,9 @@ public class TransferRequest {
     private BigDecimal amount;
     private OffsetDateTime date;
 
-    private TransferRequest(long fromAcc, long toAcc, BigDecimal amount) {
+    @JsonCreator
+    private TransferRequest(@JsonProperty("fromAcc") long fromAcc, @JsonProperty("toAcc") long toAcc,
+                            @JsonProperty("amount") BigDecimal amount) {
         this.fromAcc = fromAcc;
         this.toAcc = toAcc;
         this.amount = amount;
