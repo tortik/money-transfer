@@ -47,11 +47,13 @@ public class MoneyTransferLockService implements MoneyTransfer {
             AccountBalance newSenderBalance = new AccountBalance(senderBalance.getAccNumber(), remainingSum,
                     senderBalance.getBlockedAmount());
             LOG.debug("New Sender balance {}", newSenderBalance);
+
             AccountBalance receiverBalance = repository.getBalance(toAcc);
             BigDecimal newReceiverSum = receiverBalance.getMoneyAmount().add(request.getAmount());
             AccountBalance newReceiverBalance = new AccountBalance(receiverBalance.getAccNumber(), newReceiverSum,
                     receiverBalance.getBlockedAmount());
             LOG.debug("New Receiver balance {}", newReceiverBalance);
+
             repository.setBalance(newSenderBalance);
             repository.setBalance(newReceiverBalance);
             LOG.info("Successfully transfer money for request {}", request);

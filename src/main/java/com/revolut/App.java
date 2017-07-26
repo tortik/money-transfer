@@ -48,10 +48,9 @@ public class App {
     }
 
     public void startServer(Injector injector) throws Exception {
-        // Create the server
+
         Server server = new Server(port);
 
-        // Create a servlet context and add the jersey servlet
         final ServletContextHandler context = new ServletContextHandler(server, CONTEXT_ROOT);
 
         FilterHolder filterHolder = new FilterHolder(filter);
