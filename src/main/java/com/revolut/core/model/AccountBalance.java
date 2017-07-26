@@ -10,10 +10,9 @@ import java.math.BigDecimal;
 
 public class AccountBalance {
 
-    private long accNumber;
-
-    private BigDecimal moneyAmount = BigDecimal.ZERO;
-    private BigDecimal blockedAmount = BigDecimal.ZERO;
+    private final long accNumber;
+    private final BigDecimal moneyAmount;
+    private final BigDecimal blockedAmount;
 
     @JsonCreator
     public AccountBalance(@JsonProperty("accNumber") long accNumber, @JsonProperty("moneyAmount") BigDecimal moneyAmount,

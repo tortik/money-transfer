@@ -35,7 +35,6 @@ public class App {
 
 
     public static void main(String[] args) throws Exception {
-        try {
             Log.setLog(new Slf4jLog());
 
             final Injector injector = Guice.createInjector(new JettyModule(),
@@ -46,10 +45,6 @@ public class App {
                     new AppModule());
 
             injector.getInstance(App.class).startServer(injector);
-
-        } catch (Throwable t) {
-            t.printStackTrace();
-        }
     }
 
     public void startServer(Injector injector) throws Exception {
