@@ -33,7 +33,7 @@ import java.util.stream.Stream;
 @BenchmarkMode(Mode.AverageTime)
 @Warmup(iterations = 5, time = 1, timeUnit = TimeUnit.SECONDS)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
-public class MoneyTransferBenchmarkServiceTest {
+public class MoneyTransferBenchmark {
 
     public static final long FIRST_ACCOUNT = 123;
     public static final long SECOND_ACCOUNT = 321;
@@ -111,7 +111,7 @@ public class MoneyTransferBenchmarkServiceTest {
 
     public static void main(String[] args) throws RunnerException {
         Options opt = new OptionsBuilder()
-                .include(MoneyTransferBenchmarkServiceTest.class.getSimpleName())
+                .include(MoneyTransferBenchmark.class.getSimpleName())
                 .forks(1)
                 .build();
 

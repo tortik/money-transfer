@@ -71,9 +71,23 @@ public class App {
         context.addEventListener(injector.getInstance(SwaggerServletContextListener.class));
         context.addEventListener(injector.getInstance(GuiceResteasyBootstrapServletContextListener.class));
 
+        addShutdownHook(server);
+
         server.start();
         LOG.info("Successfully start server on port - {}", port);
         server.join();
     }
+
+    private void addShutdownHook(Server server) {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            LOG.info("Exiting");
+            try {
+                server.stop();
+            } catch (Exception e) {
+                LOG.error("Exception on server stop", e);
+            }
+        }));
+    }
+
 
 }
