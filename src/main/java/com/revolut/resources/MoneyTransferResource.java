@@ -44,6 +44,9 @@ public class MoneyTransferResource {
         if (invalid = request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
             LOG.warn("VALIDATION_ERROR: Can't transfer amount {} less or equal to zero", request.getAmount());
         }
+        if (invalid = !invalid && request.getFromAcc() == request.getToAcc()) {
+            LOG.warn("VALIDATION_ERROR: Can't send money to the same account {} = {}", request.getFromAcc(), request.getToAcc());
+        }
         if (invalid = !invalid && service.getBalance(request.getFromAcc()) == null) {
             LOG.warn("VALIDATION_ERROR: Can't find sender account {}", request.getFromAcc());
         }
