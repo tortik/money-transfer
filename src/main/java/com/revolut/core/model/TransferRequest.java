@@ -17,7 +17,7 @@ public class TransferRequest {
     private OffsetDateTime date;
 
     @JsonCreator
-    private TransferRequest(@JsonProperty("fromAcc") long fromAcc, @JsonProperty("toAcc") long toAcc,
+    public TransferRequest(@JsonProperty("fromAcc") long fromAcc, @JsonProperty("toAcc") long toAcc,
                             @JsonProperty("amount") BigDecimal amount) {
         this.fromAcc = fromAcc;
         this.toAcc = toAcc;

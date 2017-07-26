@@ -67,13 +67,13 @@ public class MoneyTransferCASService implements MoneyTransfer {
     private boolean blockAmount(Long senderAcc, BigDecimal amount) {
         AtomicReference<AccountBalance> balanceRef = repository.getBalance(senderAcc);
         for (int i = 0; i < maxRetries; i++) {
-            AccountBalance blockedBalance = Optional.ofNullable(balanceRef).
-                    map(AtomicReference::get).
+            Optional<AccountBalance> existBalance = Optional.ofNullable(balanceRef).map(AtomicReference::get);
+            AccountBalance blockedBalance = existBalance.
                     filter(it -> it.getMoneyAmount().subtract(amount).compareTo(BigDecimal.ZERO) > 0).
                     map(it -> getBlockedAccountBalance(it, amount)).
                     orElseThrow(() -> new RuntimeException(format("Can't block amount %s for account balance %s", amount, balanceRef.get())));
 
-            if (balanceRef.compareAndSet(balanceRef.get(), blockedBalance)) {
+            if (balanceRef.compareAndSet(existBalance.orElse(null), blockedBalance)) {
                 LOG.info("Successfully block amount {} for account {}", amount, senderAcc);
                 return true;
             }
@@ -85,11 +85,11 @@ public class MoneyTransferCASService implements MoneyTransfer {
     private boolean increaseReceiverAmount(Long receiverAcc, BigDecimal amount) {
         AtomicReference<AccountBalance> balanceRef = repository.getBalance(receiverAcc);
         for (int i = 0; i < maxRetries; i++) {
-            AccountBalance increasedBalance = Optional.ofNullable(balanceRef).
-                    map(AtomicReference::get).
+            Optional<AccountBalance> existBalance = Optional.ofNullable(balanceRef).map(AtomicReference::get);
+            AccountBalance increasedBalance = existBalance.
                     map(it -> increaseAmount(it, amount)).
                     orElseThrow(() -> new RuntimeException(format("Can't put money amount %s to account balance %s", amount, balanceRef.get())));
-            if (balanceRef.compareAndSet(balanceRef.get(), increasedBalance)) {
+            if (balanceRef.compareAndSet(existBalance.orElse(null), increasedBalance)) {
                 LOG.info("Successfully add amount {} for account {}", amount, receiverAcc);
                 return true;
             }
@@ -101,11 +101,13 @@ public class MoneyTransferCASService implements MoneyTransfer {
     private void decreaseSenderBlockedAmount(Long senderAcc, BigDecimal amount) {
         AtomicReference<AccountBalance> balanceRef = repository.getBalance(senderAcc);
         AccountBalance decreasedBalance;
+        Optional<AccountBalance> existBalance;
         do {
-            decreasedBalance = Optional.ofNullable(balanceRef).map(AtomicReference::get).
+            existBalance = Optional.ofNullable(balanceRef).map(AtomicReference::get);
+            decreasedBalance = existBalance.
                     map(it -> decreaseBlockedAccountBalance(it, amount)).
                     orElseThrow(() -> new RuntimeException(format("Can't put money amount %s to account balance %s", amount, balanceRef.get())));
-        } while (!balanceRef.compareAndSet(balanceRef.get(), decreasedBalance));
+        } while (!balanceRef.compareAndSet(existBalance.orElse(null), decreasedBalance));
         LOG.info("Successfully remove blocked amount {} from account {}", amount, senderAcc);
     }
 
