@@ -24,8 +24,7 @@ To run benchmark
   java -jar ./target/jmh-money-transfer.jar
 `
 
-**Swagger**
-Swagger is accessible on
+**Swagger** is accessible on
 `
   http://localhost:8080
 `
